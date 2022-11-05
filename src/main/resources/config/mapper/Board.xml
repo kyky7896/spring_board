@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.mapper.BoardMapper">
+<resultMap type="com.example.domain.Board" id="selectBoardList">
+		<result column="BOARD_TYPE" property="boardType"
+			typeHandler="com.example.mybatis.typehandler.BoardTypeHandler"/>
+</resultMap>
+
+
+  	<!-- resultmap 삭제 -->
+ 
+	<!-- 게시물 목록 쿼리 resultType : 클래스를 매핑-->
+	<select id="selectBoardList" resultMap="selectBoardList">
+		SELECT BOARD_SEQ, BOARD_TYPE, TITLE, REG_DATE, USER_NAME
+		FROM T_BOARD
+		<!-- 게시글 종류 조건 -->
+		WHERE BOARD_TYPE= #{boardType.code}
+		<!-- 검색어가 있는 경우 제목 LIKE 검색 -->
+		<if test="query != null and query.length() > 0">
+		AND TITLE LIKE CONCAT('%', CONCAT(#{query}, '%'))
+		</if>
+		ORDER BY REG_DATE DESC
+	</select>
+	
+	<!-- 게시물 목록 쿼리 resultType : 클래스를 매핑 -->
+	<select id="selectBoard" parameterType="int" resultMap="selectBoardList">
+		SELECT BOARD_SEQ, BOARD_TYPE, TITLE, CONTENTS, REG_DATE, MEMBER_SEQ, USER_NAME
+		FROM T_BOARD
+		WHERE BOARD_SEQ = #{boardSeq}
+	</select>	
+	
+	<!-- 게시물 등록 쿼리 : autoIncrement된 db를 알고있기때문에 boardSeq넣어줌-->
+	<insert id="insertBoard" parameterType="com.example.domain.Board"
+	useGeneratedKeys="true" keyProperty="boardSeq">
+	
+		INSERT INTO T_BOARD
+		(
+			BOARD_TYPE,
+			TITLE,
+			CONTENTS,
+			REG_DATE,
+			USER_NAME,
+			MEMBER_SEQ		
+		)
+		VALUES
+		(
+			#{boardType.code},
+			#{title},
+			#{contents},
+			NOW(),
+			#{userName},
+			#{memberSeq}
+		)
+	</insert>
+	
+	<!-- 게시물 업데이트 쿼리 -->
+	<insert id="updateBoard" parameterType="com.example.domain.Board">
+		UPDATE T_BOARD SET 
+			TITLE = #{title},
+			CONTENTS = #{contents},
+			REG_DATE = NOW(),
+			USER_NAME = #{userName}	
+		WHERE BOARD_SEQ = #{boardSeq}
+	</insert>
+	
+	<!-- 게시물 삭제 쿼리 -->
+	<delete id="deleteBoard" parameterType="com.example.domain.Board">
+		DELETE FROM T_BOARD
+		WHERE BOARD_SEQ = #{boardSeq}
+	</delete>
+	
+</mapper>
